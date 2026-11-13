@@ -11,8 +11,7 @@ __pycache__/
 .venv/
 trainer/.venv/
 
-# Generated experiment data, outputs, and logs
-trainer/outputs/
+# Generated experiment data
 trainer/data/downloads/
 trainer/data/project_split/
 

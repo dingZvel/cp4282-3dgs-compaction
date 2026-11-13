@@ -1,0 +1,8 @@
+scene,mask,mask_penalty,arm,status,available_count,target_count,reason,failure_iteration,slurm_job
+drums,mask_0p016,0.016,budget_0p20,overshot_budget,16,60000,"Learned masking retained only 16 Gaussians, below the exact 20% target of 60,000; Gaussians cannot be added back.",,
+drums,mask_0p016,0.016,budget_0p40,overshot_budget,16,120000,"Learned masking retained only 16 Gaussians, below the exact 40% target of 120,000; Gaussians cannot be added back.",,
+ficus,mask_0p008,0.008,budget_0p20,overshot_budget,39,60000,"Learned masking retained only 39 Gaussians, below the exact 20% target of 60,000; Gaussians cannot be added back.",,
+ficus,mask_0p008,0.008,budget_0p40,overshot_budget,39,120000,"Learned masking retained only 39 Gaussians, below the exact 40% target of 120,000; Gaussians cannot be added back.",,
+lego,mask_0p016,0.016,budget_0p20,overshot_budget,84,60000,"Learned masking retained only 84 Gaussians, below the exact 20% target of 60,000; Gaussians cannot be added back.",,
+lego,mask_0p016,0.016,budget_0p40,overshot_budget,84,120000,"Learned masking retained only 84 Gaussians, below the exact 40% target of 120,000; Gaussians cannot be added back.",,
+ficus,mask_0p016,0.016,training,collapsed,0,,Learned-mask training progressively closed every Gaussian.,12300,1107631_8
