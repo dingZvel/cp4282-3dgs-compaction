@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Presentation of scene-dependent 3D Gaussian Splatting compaction results.">
+  <title>Scene-Dependent 3DGS Compaction</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="presentation-header">
+    <a class="brand" href="#title" aria-label="Go to title slide">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>3DGS / COMPACTION</span>
+    </a>
+    <div class="header-meta">
+      <span id="slide-counter" aria-live="polite">01 / 09</span>
+      <button id="fullscreen-button" class="icon-button" type="button" aria-label="Enter fullscreen presentation">⛶</button>
+    </div>
+    <div class="progress-track" aria-hidden="true"><div id="progress-bar"></div></div>
+  </header>
+
+  <nav class="slide-nav" aria-label="Presentation slides">
+    <a href="#title" aria-label="Slide 1: Title"><span>01</span></a>
+    <a href="#question" aria-label="Slide 2: Research question"><span>02</span></a>
+    <a href="#matched" aria-label="Slide 3: Matched-budget results"><span>03</span></a>
+    <a href="#scene-effect" aria-label="Slide 4: Scene-dependent effect"><span>04</span></a>
+    <a href="#test-views" aria-label="Slide 5: Representative test views"><span>05</span></a>
+    <a href="#collapse" aria-label="Slide 6: Penalty collapse"><span>06</span></a>
+    <a href="#robustness" aria-label="Slide 7: Importance robustness"><span>07</span></a>
+    <a href="#failures" aria-label="Slide 8: Failures and fixes"><span>08</span></a>
+    <a href="#conclusion" aria-label="Slide 9: Conclusion"><span>09</span></a>
+  </nav>
+
+  <main>
+    <section id="title" class="slide hero-slide" data-slide="1" aria-labelledby="title-heading">
+      <div class="hero-copy">
+        <p class="eyebrow">CP4282 · Gaussian Splatting</p>
+        <h1 id="title-heading">When learned<br class="mobile-break"> masks help—<br><em>and when they collapse.</em></h1>
+        <p class="hero-summary">A scene-dependent study of learned-mask and importance pruning at equal Gaussian counts.</p>
+        <div class="hero-facts" aria-label="Experiment summary">
+          <div><strong>3</strong><span>scenes</span></div>
+          <div><strong>15</strong><span>training arms</span></div>
+          <div><strong>78</strong><span>evaluated models</span></div>
+          <div><strong>200</strong><span>test views each</span></div>
+        </div>
+      </div>
+      <div class="splat-field" aria-hidden="true">
+        <span style="--x:16%;--y:58%;--s:7rem;--h:156"></span>
+        <span style="--x:31%;--y:32%;--s:3rem;--h:160"></span>
+        <span style="--x:46%;--y:62%;--s:9rem;--h:152"></span>
+        <span style="--x:62%;--y:28%;--s:5rem;--h:15"></span>
+        <span style="--x:73%;--y:52%;--s:11rem;--h:158"></span>
+        <span style="--x:88%;--y:23%;--s:2.5rem;--h:20"></span>
+        <span style="--x:86%;--y:76%;--s:4rem;--h:150"></span>
+      </div>
+      <p class="slide-hint">Use ↓ or Space to advance</p>
+    </section>
+
+    <section id="question" class="slide" data-slide="2" aria-labelledby="question-heading">
+      <div class="slide-grid two-columns">
+        <div>
+          <p class="eyebrow">01 · Research question</p>
+          <h2 id="question-heading">Which scenes benefit from combining the two pruning directions?</h2>
+          <blockquote>
+            At the same final Gaussian count, does mask-first training improve novel-view quality over importance pruning alone?
+          </blockquote>
+          <div class="hypothesis">
+            <span>Initial hypothesis</span>
+            <p>Because masks are learned jointly with rendering, they should identify dispensable Gaussians better than post-hoc importance ranking; scene structure would determine the size of that advantage.</p>
+          </div>
+        </div>
+        <div class="method-panel" aria-label="Experiment pipeline">
+          <div class="method-step">
+            <span class="step-number">1</span>
+            <div><strong>Train</strong><small>20k iterations · identical seed and schedule</small></div>
+          </div>
+          <div class="method-arrow" aria-hidden="true">↓</div>
+          <div class="method-step">
+            <span class="step-number">2</span>
+            <div><strong>Mask sweep</strong><small>λ = 0 · .002 · .004 · .008 · .016</small></div>
+          </div>
+          <div class="method-arrow" aria-hidden="true">↓</div>
+          <div class="method-step">
+            <span class="step-number">3</span>
+            <div><strong>Rank by contribution</strong><small>Uᵢ = Σ Tᵢ(p) αᵢ(p)</small></div>
+          </div>
+          <div class="method-arrow" aria-hidden="true">↓</div>
+          <div class="method-step emphasis">
+            <span class="step-number">4</span>
+            <div><strong>Match exact budgets</strong><small>120k (40%) · 60k (20%) Gaussians</small></div>
+          </div>
+          <div class="method-arrow" aria-hidden="true">↓</div>
+          <div class="method-step">
+            <span class="step-number">5</span>
+            <div><strong>Evaluate</strong><small>PSNR ↑ · SSIM ↑ · LPIPS ↓ over 200 views</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="matched" class="slide chart-slide" data-slide="3" aria-labelledby="matched-heading">
+      <div class="slide-heading-row">
+        <div>
+          <p class="eyebrow">02 · Matched-budget results</p>
+          <h2 id="matched-heading">The winning direction depends on the scene.</h2>
+        </div>
+        <div class="controls" aria-label="Chart controls">
+          <div class="segmented" role="group" aria-label="Retention budget">
+            <button type="button" data-budget="0.40" class="active" aria-pressed="true">40%</button>
+            <button type="button" data-budget="0.20" aria-pressed="false">20%</button>
+          </div>
+          <div class="segmented" role="group" aria-label="Metric">
+            <button type="button" data-metric="psnr_db" class="active" aria-pressed="true">PSNR</button>
+            <button type="button" data-metric="ssim" aria-pressed="false">SSIM</button>
+            <button type="button" data-metric="lpips" aria-pressed="false">LPIPS</button>
+          </div>
+        </div>
+      </div>
+      <div id="matched-chart" class="chart matched-chart" role="img" aria-label="Matched-budget metric comparison by scene and mask penalty"></div>
+      <div class="chart-footer">
+        <div class="legend" aria-label="Mask penalty legend">
+          <span><i class="swatch baseline"></i>Importance only</span>
+          <span><i class="swatch mild"></i>Mask .002</span>
+          <span><i class="swatch medium"></i>Mask .004</span>
+          <span><i class="swatch strong"></i>Mask .008</span>
+        </div>
+        <p id="matched-insight" class="chart-insight" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="scene-effect" class="slide scene-effect-slide" data-slide="4" aria-labelledby="effect-heading">
+      <div class="slide-heading-row">
+        <div>
+          <p class="eyebrow">03 · Scene-dependent effect</p>
+          <h2 id="effect-heading">Only Ficus gains from mask-first training.</h2>
+        </div>
+        <p class="heading-note">ΔPSNR versus importance-only pruning at the same final count</p>
+      </div>
+      <div id="delta-chart" class="chart delta-chart" role="img" aria-label="PSNR difference of the best mask setting versus importance-only pruning"></div>
+      <div class="finding-grid">
+        <article class="finding negative">
+          <p class="scene-label">DRUMS</p>
+          <strong>−0.50 dB</strong>
+          <span>best mask alternative at 40%</span>
+          <p>Masking changes the training trajectory, but every eligible setting loses on PSNR, SSIM, and LPIPS.</p>
+        </article>
+        <article class="finding positive featured">
+          <p class="scene-label">FICUS</p>
+          <strong>+1.04 dB</strong>
+          <span>mask .004 at 20%</span>
+          <p>The advantage already exists before pruning; importance ranking preserves the improved representation.</p>
+        </article>
+        <article class="finding negative">
+          <p class="scene-label">LEGO</p>
+          <strong>−2.12 dB</strong>
+          <span>best mask alternative at 20%</span>
+          <p>Even the weakest penalty hurts. Stronger mask pressure degrades quality monotonically.</p>
+        </article>
+      </div>
+      <p class="analysis-takeaway"><strong>Practical result:</strong> in 2 of 3 scenes, skipping learned masks improved quality while avoiding extra training runs and scene-specific λ trial-and-error.</p>
+    </section>
+
+    <section id="test-views" class="slide test-view-slide" data-slide="5" aria-labelledby="test-views-heading">
+      <div class="slide-heading-row">
+        <div>
+          <p class="eyebrow">04 · Representative test views</p>
+          <h2 id="test-views-heading">What the metric differences look like.</h2>
+        </div>
+        <p class="heading-note">40% and 20% retention · views closest to each scene’s mean PSNR difference at each budget</p>
+      </div>
+      <div class="test-view-grid">
+        <article class="scene-view">
+          <header><strong>Drums</strong></header>
+          <div class="budget-view">
+            <div class="budget-view-heading"><span><b>40%</b> · 120k · view 89</span><strong class="loss">−0.48 dB</strong></div>
+            <div class="triptych">
+              <figure><div class="image-frame"><img src="assets/test-views/drums-ground-truth-40.png" alt="Ground-truth Drums test view 89"></div><figcaption>Ground truth</figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/drums-importance-40.png" alt="Drums test view 89 rendered after importance-only pruning to 120,000 Gaussians"></div><figcaption>Importance only<br><span>20.38 dB</span></figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/drums-mask-40.png" alt="Drums test view 89 rendered with mask penalty 0.008 followed by importance pruning to 120,000 Gaussians"></div><figcaption>Mask .008 + importance<br><span>19.90 dB</span></figcaption></figure>
+            </div>
+          </div>
+          <div class="budget-view">
+            <div class="budget-view-heading"><span><b>20%</b> · 60k · view 22</span><strong class="loss">−0.38 dB</strong></div>
+            <div class="triptych">
+              <figure><div class="image-frame"><img src="assets/test-views/drums-ground-truth.png" alt="Ground-truth Drums test view 22"></div><figcaption>Ground truth</figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/drums-importance.png" alt="Drums test view 22 rendered after importance-only pruning to 60,000 Gaussians"></div><figcaption>Importance only<br><span>22.29 dB</span></figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/drums-mask.png" alt="Drums test view 22 rendered with mask penalty 0.008 followed by importance pruning to 60,000 Gaussians"></div><figcaption>Mask .008 + importance<br><span>21.91 dB</span></figcaption></figure>
+            </div>
+          </div>
+        </article>
+        <article class="scene-view featured-view">
+          <header><strong>Ficus</strong></header>
+          <div class="budget-view">
+            <div class="budget-view-heading"><span><b>40%</b> · 120k · view 119</span><strong class="gain">+0.87 dB</strong></div>
+            <div class="triptych">
+              <figure><div class="image-frame"><img src="assets/test-views/ficus-ground-truth-40.png" alt="Ground-truth Ficus test view 119"></div><figcaption>Ground truth</figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/ficus-importance-40.png" alt="Ficus test view 119 rendered after importance-only pruning to 120,000 Gaussians"></div><figcaption>Importance only<br><span>20.81 dB</span></figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/ficus-mask-40.png" alt="Ficus test view 119 rendered with mask penalty 0.004 followed by importance pruning to 120,000 Gaussians"></div><figcaption>Mask .004 + importance<br><span>21.68 dB</span></figcaption></figure>
+            </div>
+          </div>
+          <div class="budget-view">
+            <div class="budget-view-heading"><span><b>20%</b> · 60k · view 71</span><strong class="gain">+1.04 dB</strong></div>
+            <div class="triptych">
+              <figure><div class="image-frame"><img src="assets/test-views/ficus-ground-truth.png" alt="Ground-truth Ficus test view 71"></div><figcaption>Ground truth</figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/ficus-importance.png" alt="Ficus test view 71 rendered after importance-only pruning to 60,000 Gaussians"></div><figcaption>Importance only<br><span>20.53 dB</span></figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/ficus-mask.png" alt="Ficus test view 71 rendered with mask penalty 0.004 followed by importance pruning to 60,000 Gaussians"></div><figcaption>Mask .004 + importance<br><span>21.57 dB</span></figcaption></figure>
+            </div>
+          </div>
+        </article>
+        <article class="scene-view">
+          <header><strong>Lego</strong></header>
+          <div class="budget-view">
+            <div class="budget-view-heading"><span><b>40%</b> · 120k · view 189</span><strong class="loss">−1.48 dB</strong></div>
+            <div class="triptych">
+              <figure><div class="image-frame"><img src="assets/test-views/lego-ground-truth-40.png" alt="Ground-truth Lego test view 189"></div><figcaption>Ground truth</figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/lego-importance-40.png" alt="Lego test view 189 rendered after importance-only pruning to 120,000 Gaussians"></div><figcaption>Importance only<br><span>26.05 dB</span></figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/lego-mask-40.png" alt="Lego test view 189 rendered with mask penalty 0.002 followed by importance pruning to 120,000 Gaussians"></div><figcaption>Mask .002 + importance<br><span>24.58 dB</span></figcaption></figure>
+            </div>
+          </div>
+          <div class="budget-view">
+            <div class="budget-view-heading"><span><b>20%</b> · 60k · view 14</span><strong class="loss">−2.12 dB</strong></div>
+            <div class="triptych">
+              <figure><div class="image-frame"><img src="assets/test-views/lego-ground-truth.png" alt="Ground-truth Lego test view 14"></div><figcaption>Ground truth</figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/lego-importance.png" alt="Lego test view 14 rendered after importance-only pruning to 60,000 Gaussians"></div><figcaption>Importance only<br><span>26.98 dB</span></figcaption></figure>
+              <figure><div class="image-frame"><img src="assets/test-views/lego-mask.png" alt="Lego test view 14 rendered with mask penalty 0.002 followed by importance pruning to 60,000 Gaussians"></div><figcaption>Mask .002 + importance<br><span>24.85 dB</span></figcaption></figure>
+            </div>
+          </div>
+        </article>
+      </div>
+      <p class="view-note">At each budget, the selected camera has a per-view PSNR difference closest to the scene’s 200-view mean—representative examples, not extremes.</p>
+    </section>
+
+    <section id="collapse" class="slide chart-slide" data-slide="6" aria-labelledby="collapse-heading">
+      <div class="slide-heading-row">
+        <div>
+          <p class="eyebrow">05 · Penalty instability</p>
+          <h2 id="collapse-heading">The useful range ends at a cliff.</h2>
+        </div>
+        <p class="heading-note">Final active Gaussian count after 20k iterations</p>
+      </div>
+      <div id="collapse-chart" class="chart collapse-chart" role="img" aria-label="Final Gaussian count by mask penalty for Drums, Ficus, and Lego"></div>
+      <div class="collapse-callouts">
+        <div><span>0.008</span><p>Ficus collapses early to <strong>39</strong> Gaussians.</p></div>
+        <div><span>0.016</span><p>Drums: <strong>16</strong> · Ficus: <strong>0</strong> · Lego: <strong>84</strong></p></div>
+        <div><span>Meaning</span><p>A fixed penalty is not a reliable compaction target.</p></div>
+      </div>
+    </section>
+
+    <section id="robustness" class="slide" data-slide="7" aria-labelledby="robustness-heading">
+      <div class="slide-grid robustness-layout">
+        <div>
+          <p class="eyebrow">06 · A strong baseline</p>
+          <h2 id="robustness-heading">Importance pruning removes 75% with less than 0.3 dB loss.</h2>
+          <p class="section-copy">The unmasked baseline is already highly redundant. A learned mask must improve the representation—not merely remove Gaussians—to beat it.</p>
+          <div class="robustness-stats">
+            <div><strong>4×</strong><span>fewer Gaussians</span></div>
+            <div><strong>≤0.293</strong><span>dB loss</span></div>
+          </div>
+        </div>
+        <div id="robustness-chart" class="chart robustness-chart" role="img" aria-label="PSNR before and after 75 percent importance pruning"></div>
+      </div>
+    </section>
+
+    <section id="failures" class="slide" data-slide="8" aria-labelledby="failures-heading">
+      <div class="slide-heading-row">
+        <div>
+          <p class="eyebrow">07 · What failed—and what fixes it</p>
+          <h2 id="failures-heading">Negative results improved the protocol.</h2>
+        </div>
+      </div>
+      <div class="failure-columns">
+        <div>
+          <h3>Scientific limitations</h3>
+          <ol class="failure-list">
+            <li><span>01</span><div><strong>Coarse penalty sweep</strong><p>Densely sample the transition or control λ to follow a target count.</p></div></li>
+            <li><span>02</span><div><strong>One seed</strong><p>Repeat leading arms across 3–5 seeds with paired confidence intervals.</p></div></li>
+            <li><span>03</span><div><strong>No recovery phase</strong><p>Fine-tune every compact model equally with pruning and densification disabled.</p></div></li>
+            <li><span>04</span><div><strong>Three synthetic scenes</strong><p>Test a scene-level rule on more synthetic and real captures.</p></div></li>
+          </ol>
+        </div>
+        <div>
+          <h3>Engineering failures fixed</h3>
+          <ol class="failure-list fixed-list">
+            <li><span>✓</span><div><strong>Zero-Gaussian run blocked Slurm</strong><p>Collapse is now a structured exclusion, not a broken dependency.</p></div></li>
+            <li><span>✓</span><div><strong>Tiny models overflowed tile pairs</strong><p>Added a resolution-aware minimum buffer capacity.</p></div></li>
+            <li><span>✓</span><div><strong>Completed work was preserved</strong><p>Repairs reran only failed or missing steps.</p></div></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="conclusion" class="slide conclusion-slide" data-slide="9" aria-labelledby="conclusion-heading">
+      <div class="conclusion-content">
+        <p class="eyebrow">08 · Conclusion</p>
+        <h2 id="conclusion-heading">Importance first.<br><em>Mask only with evidence.</em></h2>
+        <div class="decision-rule">
+          <div class="decision-node primary-node">Start with<br><strong>importance pruning</strong></div>
+          <div class="decision-arrow" aria-hidden="true">→</div>
+          <div class="decision-node">Run a short<br><strong>mask pilot</strong></div>
+          <div class="decision-arrow" aria-hidden="true">→</div>
+          <div class="decision-split">
+            <div><span class="yes">Validation ↑<br>count stable</span><strong>Combine</strong></div>
+            <div><span class="no">Quality ↓<br>count collapsing</span><strong>Stay importance-only</strong></div>
+          </div>
+        </div>
+        <p class="closing-statement">Learned masks justified their extra training and scene-specific λ search only for Ficus. Start with importance pruning; add masks only when a pilot improves validation without collapsing the count.</p>
+        <div class="next-work">
+          <span>Next:</span> adaptive λ · multiple seeds · recovery fine-tuning · persistent Gaussian lineage
+        </div>
+      </div>
+      <footer>
+        <span>Full report: <code>project_report.md</code></span>
+        <span>Data: <code>trainer/outputs/project/analysis/</code></span>
+      </footer>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

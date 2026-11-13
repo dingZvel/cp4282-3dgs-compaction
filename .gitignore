@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.venv/
+trainer/.venv/
+
+# Generated experiment data, outputs, and logs
+trainer/outputs/
+trainer/data/downloads/
+trainer/data/project_split/
+
+# Generated configs contain machine-specific absolute paths
+trainer/config/project/
+
+# Temporary/export directories
+tmp/
+output/
+
+# Redundant generated archive; the presentation sources are tracked directly
+presentation.zip

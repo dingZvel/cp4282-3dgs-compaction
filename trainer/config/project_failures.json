@@ -1,0 +1,14 @@
+[
+  {
+    "scene": "ficus",
+    "mask": "mask_0p016",
+    "mask_penalty": 0.016,
+    "arm": "training",
+    "status": "collapsed",
+    "available_count": 0,
+    "target_count": "",
+    "failure_iteration": 12300,
+    "slurm_job": "1107631_8",
+    "reason": "Learned-mask training progressively closed every Gaussian."
+  }
+]

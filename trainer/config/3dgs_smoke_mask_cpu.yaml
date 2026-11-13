@@ -1,0 +1,43 @@
+paths:
+  data: ../data/lego
+  output: ../outputs/smoke-mask.png
+  init_ply: ../data/lego/init.ply
+
+runtime:
+  arch: cpu
+  seed: 7
+
+model:
+  width: 16
+  height: 16
+  capacity: 50000
+  background: white
+
+training:
+  iterations: 1
+
+densification:
+  interval: 0
+  fraction: 0.2
+
+learned_mask:
+  enabled: true
+  penalty: 0.004
+  threshold: 0.01
+  initial_logit: 1.0
+
+multiview_adc:
+  enabled: false
+
+sparse:
+  enabled: false
+
+convergence:
+  enabled: false
+
+reporting:
+  log_every: 1
+  eval_every: 1
+  eval_views: 1
+  snapshot_every: 1
+  save_ply: false

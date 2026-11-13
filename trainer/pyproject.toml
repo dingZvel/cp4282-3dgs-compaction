@@ -1,0 +1,6 @@
+[tool.pyright]
+include = ["."]
+extraPaths = [
+    "./renderer",
+    "./shared",
+]
