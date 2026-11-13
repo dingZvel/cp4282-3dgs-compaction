@@ -425,6 +425,96 @@ will outperform importance pruning alone.
 
 ## 8. Reproducibility artifacts
 
+### 8.1 Repository
+
+The complete source code, configuration templates, report, presentation, and cluster automation are
+available at:
+
+> <https://github.com/dingZvel/cp4282-3dgs-compaction>
+
+The root [`README.md`](README.md) is the authoritative operational guide. It documents the hardware
+and software requirements, generated-file policy, Slurm task mapping, expected collapse, resume
+procedure, output layout, and result-verification checks. The implementation originated from the
+CP4282 Warp trainer in <https://github.com/dingZvel/cp4282-as2>; the project repository vendors the
+modified trainer under `trainer/` so no Git submodule is required.
+
+### 8.2 Reproduction procedure
+
+The full experiment requires a CUDA-capable Slurm cluster. The reported run used one H100 96 GB GPU
+per training or post-processing task. Clone the project and enter the trainer directory:
+
+```bash
+git clone https://github.com/dingZvel/cp4282-3dgs-compaction.git
+cd cp4282-3dgs-compaction/trainer
+```
+
+Create the Python environment, download the Drums, Ficus, and Lego scenes, construct the
+deterministic 90-training/10-validation split, preserve the original 200 test views, and generate
+the 15 fixed experiment configurations:
+
+```bash
+bash slurm/setup_cluster.sh
+source .venv/bin/activate
+bash scripts/download_project_data.sh
+find config/project -maxdepth 1 -name '*.yaml' -type f | sort | nl -v0 -ba
+```
+
+Before launching the full sweep, run the CUDA gradient and learned-mask smoke test:
+
+```bash
+mkdir -p outputs/project/logs
+SMOKE_JOB=$(sbatch --parsable slurm/smoke.sbatch)
+echo "Smoke job: ${SMOKE_JOB}"
+```
+
+After the smoke job succeeds, submit the 15 training configurations with at most two concurrent
+H100 jobs:
+
+```bash
+TRAIN_JOB=$(sbatch --parsable --array='0-14%2' slurm/train_array.sbatch)
+echo "Training array: ${TRAIN_JOB}"
+```
+
+Task 8 is Ficus at \(\lambda_{\mathrm{mask}}=0.016\). It is expected to close every Gaussian and
+may terminate without a PLY at approximately iteration 12,300. This is a retained negative result,
+not a reason to discard the successful tasks. Consequently, post-processing uses an `afterany`
+dependency and omits only task 8:
+
+```bash
+POST_JOB=$(sbatch --parsable \
+  --dependency="afterany:${TRAIN_JOB}" \
+  --array='0-7,9-14%2' \
+  slurm/postprocess_array.sbatch)
+echo "Post-processing array: ${POST_JOB}"
+```
+
+Each post-processing task computes accumulated \(T_i\alpha_i\) importance, writes the four
+relative-pruning arms, constructs the exact 120,000- and 60,000-Gaussian arms when possible,
+renders all 200 test cameras, and evaluates PSNR, SSIM, and LPIPS. The job uses `--skip-existing`,
+so resubmission preserves completed work and fills only missing outputs.
+
+After every non-collapsed post-processing task succeeds, aggregate the metrics on a CPU node or
+inside a suitable CPU allocation:
+
+```bash
+.venv/bin/python scripts/analyze_project_results.py
+```
+
+The reproduction is structurally complete when the evaluation tree contains 78 metric files:
+
+```bash
+find outputs/project/eval -name metrics.csv -type f | wc -l
+cat outputs/project/analysis/report.md
+```
+
+The expected qualitative ordering is that Ficus with penalty 0.004 wins all three metrics at both
+matched budgets, whereas importance-only pruning wins all three metrics for Drums and Lego. The
+exact eligible counts must be 120,000 at 40% retention and 60,000 at 20% retention. Small numerical
+differences can occur across Warp, CUDA, driver, or GPU versions; the experiment uses one fixed
+training seed, 7, rather than claiming bitwise reproducibility.
+
+### 8.3 Generated artifacts
+
 The aggregate results are stored under `trainer/outputs/project/analysis/`:
 
 - `all_results.csv`: all 78 evaluated arms;
